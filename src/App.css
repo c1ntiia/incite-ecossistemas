@@ -7,3 +7,26 @@
   gap: 1rem;
   padding: 2rem;
 }
+
+/* p{
+  font-size: 2rem;
+} */
+
+@keyframes logo-initial {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 0.05;
+  }
+  50% { 
+    transform: scale(1.15); 
+    opacity: 1;
+  }
+}
+
+.animate-logo-initial {
+  animation: logo-initial 2.5s ease-in-out infinite;
+}
+
+html {
+  scroll-behavior: smooth; 
+}
