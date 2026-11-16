@@ -1,6 +1,26 @@
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import ResearcherCarousel from '@/components/ResearcherCarousel'
+import { researchers } from '@/data/researchers'
+
+// Embaralha uma cópia para o carrossel não começar sempre pelos mesmos nomes
+function shuffle(list) {
+  const copy = [...list]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
+import ResearcherCarousel from '@/components/ResearcherCarousel'
+import { useResearchers } from '@/hooks/useResearchers'
 
 export default function Home() {
+  const carouselResearchers = useMemo(() => shuffle(researchers), [])
+
+  const { researchers, loading, error } = useResearchers()
+
   // // Array provisório
   // const pesquisadores = [
   //   { id: 1, nome: "Dra. Ana Silva", foto: "https://via.placeholder.com/150" },
@@ -109,13 +129,44 @@ export default function Home() {
           </a>
 
         </div>
+
+        <div className="px-4 sm:px-10 pb-12">
+          <h2 className="text-3xl font-bold tracking-tight text-center mb-8">
+            Nossos{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-lime-500 to-sky-400">
+              pesquisadores
+            </span>
+          </h2>
+
+          {loading ? (
+            <div className="flex gap-6 overflow-hidden py-4 px-1" aria-busy="true">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="shrink-0 w-44 sm:w-48 h-52 rounded-[2rem] bg-white/70 shadow-md animate-pulse" />
+              ))}
+            </div>
+          ) : error ? (
+            <p className="text-center text-gray-500">Não foi possível carregar os pesquisadores.</p>
+          ) : (
+            <ResearcherCarousel researchers={researchers} />
+          )}
+        </div>
       
-        <div className="text-center">
-          <a href="/pesquisadores">
-            <Button variant="outline" className="text-emerald-700 border-emerald-600 hover:bg-emerald-50 px-8 py-6 rounded-full text-lg transition-all">
-              Quem somos
-            </Button>
-          </a>
+      </section>
+
+      <section id="pesquisadores" className="max-w-7xl mx-auto pb-20 px-4">
+        <header className="text-center mb-8">
+          <h2 className="text-3xl font-bold tracking-tight">Nossos pesquisadores</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            {researchers.length} pesquisadores de diferentes instituições da Bahia e do Brasil
+          </p>
+        </header>
+
+        <ResearcherCarousel researchers={carouselResearchers} />
+
+        <div className="text-center mt-10">
+          <Button asChild variant="outline" className="text-emerald-700 border-emerald-600 hover:bg-emerald-50 px-8 py-6 rounded-full text-lg transition-all">
+            <Link to="/pesquisadores">Quem somos →</Link>
+          </Button>
         </div>
       </section>
 
@@ -124,7 +175,21 @@ export default function Home() {
 }
 
 
-// import { Button } from '@/components/ui/button'
+// import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import ResearcherCarousel from '@/components/ResearcherCarousel'
+import { researchers } from '@/data/researchers'
+
+// Embaralha uma cópia para o carrossel não começar sempre pelos mesmos nomes
+function shuffle(list) {
+  const copy = [...list]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
 
 // export default function home() {
 //   return (
