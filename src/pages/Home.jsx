@@ -19,7 +19,7 @@ export default function Home() {
               <p className="mb-3 text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-widest">
                 Institutos de Ciência, Inovação e Tecnologia do Estado da Bahia
               </p>
-              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight drop-shadow-sm leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight drop-shadow-sm leading-tight">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-lime-500 to-sky-400">
                   INCITE
                 </span>{' '}
