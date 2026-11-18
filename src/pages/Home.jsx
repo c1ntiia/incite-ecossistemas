@@ -63,16 +63,16 @@ export default function Home() {
 
           <div className="grid grid-cols-2 gap-4 pt-[5%]">
             <div className="w-full h-40 sm:h-56 bg-gray-200 rounded-[2rem] overflow-hidden shadow-md">
-              <img src="./img1.jpg" alt="Restauração 1" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+              <img src={`${import.meta.env.BASE_URL}img1.jpg`} alt="Restauração 1" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
             </div>
             <div className="w-full h-40 sm:h-56 bg-gray-200 rounded-[2rem] overflow-hidden shadow-md lg:mt-8">
-              <img src="./img2.JPG" alt="Restauração 2" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+              <img src={`${import.meta.env.BASE_URL}img2.JPG`} alt="Restauração 2" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
             </div>
             <div className="w-full h-40 sm:h-56 bg-gray-200 rounded-[2rem] overflow-hidden shadow-md">
-              <img src="./img3.JPG" alt="Restauração 3" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+              <img src={`${import.meta.env.BASE_URL}img3.JPG`} alt="Restauração 3" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
             </div>
             <div className="w-full h-40 sm:h-56 bg-gray-200 rounded-[2rem] overflow-hidden shadow-md lg:mt-8">
-              <img src="./img4.jpeg" alt="Restauração 4" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+              <img src={`${import.meta.env.BASE_URL}img4.jpeg`} alt="Restauração 4" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
             </div>
           </div>
 

@@ -27,8 +27,8 @@ export default function Navbar() {
       <div className="w-full px-6 lg:px-16">
         <div className="flex justify-between items-center h-20">
           <div className="flex-shrink-0 flex items-center">
-            <Link to="/">
-              <img src="/logo.png" alt="Logo INCITE" className="h-14 w-auto object-contain"/>
+            <Link to="/home">
+              <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Logo INCITE" className="h-14 w-auto object-contain"/>
             </Link>
           </div>  
 

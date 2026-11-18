@@ -36,14 +36,14 @@ export default function Footer() {
                     <div className="flex gap-4">
                         <div className="p-2 rounded-lg h-20 w-34 flex items-center justify-center">
                             <img 
-                            src="/logoFapesb.png" 
+                            src={`${import.meta.env.BASE_URL}logoFapesb.png`} 
                             alt="Fapesb" 
                             className="max-h-full max-w-full object-contain" 
                             />
                         </div>
                         <div className="p-2 rounded-lg h-20 w-34 flex items-center justify-center">
                             <img 
-                            src="/govSECTI.png" 
+                            src={`${import.meta.env.BASE_URL}govSECTI.png`} 
                             alt="SECTI- Estado da Bahia" 
                             className="max-h-full max-w-full object-contain" 
                             />

@@ -11,7 +11,7 @@ export default function App() {
 
     // mudar para carregamento da api
     const timer = setTimeout(() => {
-      navigate('/Home'), { replace: true}
+      navigate('/home', { replace: true })
     }, 5000)
 
     return () => {
@@ -24,7 +24,7 @@ export default function App() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-green-50">
         <img 
           className={`animate-logo-initial drop-shadow-xl ${isMobile ? "w-40" : "w-52 py-2"}`}
-          src="/logo.png"
+          src={`${import.meta.env.BASE_URL}logo.png`}
           alt="INCITE Ecossistemas Baianos"
         />
       </div>
