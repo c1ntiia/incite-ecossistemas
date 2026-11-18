@@ -1,4 +1,5 @@
 import data from './instituicoes_pesquisadores.json'
+import { API_URL } from '@/constants'
 
 // Dados provisórios (JSON local). Quando a API estiver pronta, troque a origem aqui.
 
@@ -27,12 +28,19 @@ export function getLattesUrl(researcher) {
   return `https://lattes.cnpq.br/${researcher.lattes_id}`
 }
 
-// A foto do Lattes precisa do ID de 10 caracteres (ex.: K4787073J7), não do de 16 dígitos.
-// Adicione "photo_url" ou "lattes_10_id" no JSON para exibir a foto; senão mostra as iniciais.
+// Foto do pesquisador vinda da API (GET /researcher/image).
+// Usa o id da API quando existir; senão o lattes_id (dados do JSON local).
+// Se a imagem falhar, o ResearcherAvatar mostra as iniciais.
 export function getPhotoUrl(researcher) {
   if (researcher.photo_url) return researcher.photo_url
-  if (researcher.lattes_10_id) {
-    return `https://servicosweb.cnpq.br/wspessoa/servletrecuperafoto?tipo=1&id=${researcher.lattes_10_id}`
+
+  const base = API_URL.replace(/\/+$/, '')
+  // Mesmo caminho que a API devolve no campo "image" de GET /v2/researcher/{id}
+  if (researcher.id) {
+    return `${base}/v2/researcher/${encodeURIComponent(researcher.id)}/image`
+  }
+  if (researcher.lattes_id) {
+    return `${base}/researcher/image?lattes_id=${encodeURIComponent(researcher.lattes_id)}`
   }
   return null
 }

@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
-  Award,
   BookOpen,
   Building2,
   Calendar,
@@ -122,15 +121,12 @@ export default function ResearcherPanel() {
   // Estatísticas rápidas dos artigos do pesquisador
   const stats = useMemo(() => {
     const total = articles.length
-    const qualisA = articles.filter((a) =>
-      ['A1', 'A2', 'A3', 'A4'].includes(String(a.qualis || '').toUpperCase().trim()),
-    ).length
     const magazines = new Set(
       articles.map((a) => (a.magazine ? a.magazine.trim().toLowerCase() : null)).filter(Boolean),
     ).size
     const latestYear = availableYears[0] || '—'
 
-    return { total, qualisA, magazines, latestYear }
+    return { total, magazines, latestYear }
   }, [articles, availableYears])
 
   if (loadingResearcher && !researcher) {
@@ -285,7 +281,7 @@ export default function ResearcherPanel() {
       </section>
 
       {/* Cards de Indicadores da Produção Bibliográfica */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         <div className="bg-white/90 rounded-[2rem] p-6 shadow-sm border border-gray-100 flex items-center gap-4">
           <div className="h-12 w-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
             <FileText className="h-6 w-6" />
@@ -296,20 +292,6 @@ export default function ResearcherPanel() {
             </p>
             <p className="text-2xl font-bold text-gray-900">
               {loadingArticles ? '...' : stats.total}
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white/90 rounded-[2rem] p-6 shadow-sm border border-gray-100 flex items-center gap-4">
-          <div className="h-12 w-12 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
-            <Award className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Qualis A (A1–A4)
-            </p>
-            <p className="text-2xl font-bold text-gray-900">
-              {loadingArticles ? '...' : stats.qualisA}
             </p>
           </div>
         </div>
