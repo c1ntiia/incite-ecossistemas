@@ -6,9 +6,14 @@ import { researchers as localResearchers } from '@/data/researchers'
 const localByLattes = new Map(localResearchers.map((r) => [r.lattes_id, r]))
 
 function withInstitution(researcher) {
-  if (researcher.institution?.acronym) return researcher
   const local = localByLattes.get(researcher.lattes_id)
-  return { ...researcher, institution: local?.institution ?? null }
+  return {
+    ...researcher,
+    institution_id: researcher.institution_id ?? local?.institution_id ?? null,
+    institution: researcher.institution?.acronym
+      ? researcher.institution
+      : (local?.institution ?? null),
+  }
 }
 
 // Busca os pesquisadores na API (GET /researcher)

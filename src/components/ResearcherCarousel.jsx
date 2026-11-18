@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import ResearcherAvatar from '@/components/ResearcherAvatar'
 
@@ -40,41 +41,55 @@ export default function ResearcherCarousel({ researchers, interval = 3000 }) {
         type="button"
         onClick={() => scrollTrack(trackRef.current, -1)}
         aria-label="Pesquisadores anteriores"
-        className="absolute left-0 top-1/2 z-10 -translate-y-1/2 -translate-x-1/2 hidden sm:flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-emerald-700 shadow-lg hover:bg-emerald-50 transition-colors"
+        className="absolute left-0 top-1/2 z-10 -translate-y-1/2 -translate-x-1/2 hidden sm:flex h-14 w-14 items-center justify-center rounded-full bg-white/95 text-emerald-700 shadow-xl hover:bg-emerald-50 hover:scale-105 transition-all"
       >
-        <ChevronLeft className="h-6 w-6" />
+        <ChevronLeft className="h-7 w-7" />
       </button>
 
       <ul
         ref={trackRef}
-        className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth py-4 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-8 overflow-x-auto snap-x snap-mandatory scroll-smooth py-8 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {researchers.map((researcher) => (
-          <li
-            key={researcher.lattes_id}
-            data-card
-            className="snap-start shrink-0 w-44 sm:w-48 flex flex-col items-center text-center bg-white/90 rounded-[2rem] p-6 shadow-md"
-          >
-            <ResearcherAvatar researcher={researcher} className="h-24 w-24 text-2xl" />
-            <p className="mt-4 text-sm font-semibold text-gray-800 leading-snug line-clamp-2">
-              {researcher.name}
-            </p>
-            {researcher.institution && (
-              <p className="mt-1 text-xs font-medium text-emerald-700">
-                {researcher.institution.acronym}
-              </p>
-            )}
-          </li>
-        ))}
+        {researchers.map((researcher) => {
+          const profileId = researcher.id || researcher.lattes_id
+          return (
+            <li
+              key={researcher.lattes_id || researcher.id}
+              data-card
+              className="snap-start shrink-0 w-64 sm:w-72 min-h-[300px] flex flex-col items-center justify-between text-center bg-white rounded-[2.5rem] p-8 shadow-lg border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            >
+              <Link
+                to={`/pesquisadores/${profileId}`}
+                className="flex flex-col items-center justify-between h-full w-full group"
+              >
+                <div className="flex flex-col items-center">
+                  <ResearcherAvatar
+                    researcher={researcher}
+                    className="h-32 w-32 text-3xl shadow-md group-hover:scale-105 transition-transform"
+                  />
+                  <p className="mt-6 text-lg font-bold text-gray-800 group-hover:text-emerald-700 transition-colors leading-snug line-clamp-2">
+                    {researcher.name}
+                  </p>
+                </div>
+
+                {researcher.institution && (
+                  <span className="mt-4 inline-block bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full text-sm font-semibold">
+                    {researcher.institution.acronym}
+                  </span>
+                )}
+              </Link>
+            </li>
+          )
+        })}
       </ul>
 
       <button
         type="button"
         onClick={() => scrollTrack(trackRef.current, 1)}
         aria-label="Próximos pesquisadores"
-        className="absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-1/2 hidden sm:flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-emerald-700 shadow-lg hover:bg-emerald-50 transition-colors"
+        className="absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-1/2 hidden sm:flex h-14 w-14 items-center justify-center rounded-full bg-white/95 text-emerald-700 shadow-xl hover:bg-emerald-50 hover:scale-105 transition-all"
       >
-        <ChevronRight className="h-6 w-6" />
+        <ChevronRight className="h-7 w-7" />
       </button>
     </div>
   )

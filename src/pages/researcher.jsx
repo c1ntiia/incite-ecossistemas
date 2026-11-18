@@ -1,21 +1,31 @@
 import { useMemo, useState } from 'react'
-import { ExternalLink, Search } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ExternalLink, FileText, Search } from 'lucide-react'
 import ResearcherAvatar from '@/components/ResearcherAvatar'
-import { getLattesUrl, institutions, normalizeText, researchers } from '@/data/researchers'
+import {
+  getLattesUrl,
+  institutions,
+  normalizeText,
+  researchers as localResearchers,
+} from '@/data/researchers'
+import { useResearchers } from '@/hooks/useResearchers'
 
 export default function Researcher() {
   const [query, setQuery] = useState('')
   const [institutionId, setInstitutionId] = useState('')
+  const { researchers: apiResearchers } = useResearchers()
+
+  const list = apiResearchers.length > 0 ? apiResearchers : localResearchers
 
   const filtered = useMemo(() => {
     const q = normalizeText(query.trim())
-    return researchers.filter((r) => {
+    return list.filter((r) => {
       const matchesName = !q || normalizeText(r.name).includes(q)
-      const matchesInstitution =
-        !institutionId || r.institution_id.toLowerCase() === institutionId.toLowerCase()
+      const rInstId = String(r.institution_id ?? r.institution?.institution_id ?? '').toLowerCase()
+      const matchesInstitution = !institutionId || rInstId === institutionId.toLowerCase()
       return matchesName && matchesInstitution
     })
-  }, [query, institutionId])
+  }, [list, query, institutionId])
 
   return (
     <main className="max-w-7xl mx-auto px-6 lg:px-16 py-12 text-gray-800">
@@ -30,7 +40,7 @@ export default function Researcher() {
           da rede
         </h1>
         <p className="mt-3 text-sm text-gray-600">
-          {researchers.length} pesquisadores de {institutions.length} instituições.
+          {list.length} pesquisadores de {institutions.length} instituições.
         </p>
       </header>
 
@@ -72,28 +82,56 @@ export default function Researcher() {
         <p className="text-center text-gray-500 py-16">Nenhum pesquisador encontrado.</p>
       ) : (
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filtered.map((r) => (
-            <li
-              key={r.lattes_id}
-              className="flex flex-col items-center text-center bg-white/90 rounded-[2rem] p-6 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-            >
-              <ResearcherAvatar researcher={r} className="h-24 w-24 text-2xl" />
-              <h2 className="mt-4 font-semibold leading-snug">{r.name}</h2>
-              {r.institution && (
-                <p className="mt-1 text-sm text-gray-500" title={r.institution.name}>
-                  {r.institution.acronym}
-                </p>
-              )}
-              <a
-                href={getLattesUrl(r)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
+          {filtered.map((r) => {
+            const profileId = r.id || r.lattes_id
+            return (
+              <li
+                key={r.lattes_id || r.id}
+                className="flex flex-col items-center justify-between text-center bg-white/90 rounded-[2rem] p-6 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
-                Currículo Lattes <ExternalLink className="h-4 w-4" />
-              </a>
-            </li>
-          ))}
+                <Link
+                  to={`/pesquisadores/${profileId}`}
+                  className="flex flex-col items-center group w-full"
+                >
+                  <ResearcherAvatar
+                    researcher={r}
+                    className="h-24 w-24 text-2xl group-hover:scale-105 transition-transform"
+                  />
+                  <h2 className="mt-4 font-semibold leading-snug group-hover:text-emerald-700 transition-colors">
+                    {r.name}
+                  </h2>
+                  {r.institution && (
+                    <p className="mt-1 text-sm text-gray-500" title={r.institution.name}>
+                      {r.institution.acronym}
+                    </p>
+                  )}
+                  {r.graduation && (
+                    <span className="mt-2 inline-block rounded-full bg-emerald-50 text-emerald-700 px-3 py-0.5 text-xs font-medium">
+                      {r.graduation}
+                    </span>
+                  )}
+                </Link>
+
+                <div className="mt-5 pt-4 border-t border-gray-100 w-full flex flex-col gap-2">
+                  <Link
+                    to={`/pesquisadores/${profileId}`}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-semibold shadow-sm transition-colors"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    Ver painel e artigos
+                  </Link>
+                  <a
+                    href={getLattesUrl(r)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1 text-xs font-medium text-gray-500 hover:text-emerald-700 hover:underline"
+                  >
+                    Currículo Lattes <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
     </main>
