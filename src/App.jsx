@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import InitialHome from './pages/InitialHome'
 import Home from './pages/Home'
-import Researcher from './pages/Researcher'
+import Researcher from './pages/researcher'
 import ResearcherPanel from './pages/ResearcherPanel'
+import Productions from './pages/Productions'
 import Layout from './templates/layout'
 import './App.css'
 
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/pesquisadores" element={<Researcher />} />
           <Route path="/pesquisadores/:id" element={<ResearcherPanel />} />
+          <Route path="/producoes" element={<Productions />} />
         </Route>
       </Routes>
     </Router>

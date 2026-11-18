@@ -118,7 +118,7 @@ export default function Researcher() {
                     className="inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-semibold shadow-sm transition-colors"
                   >
                     <FileText className="h-3.5 w-3.5" />
-                    Ver painel e artigos
+                    Ver painel do pesquisador
                   </Link>
                   <a
                     href={getLattesUrl(r)}

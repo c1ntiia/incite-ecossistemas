@@ -5,6 +5,7 @@ import ResearcherCarousel from '@/components/ResearcherCarousel'
 import { researchers } from '@/data/researchers'
 import { useResearchers } from '@/hooks/useResearchers'
 import AboutSection from '../components/AboutSection'
+import InstitutionsSection from '../components/InstitutionsSection'
 import { Info, AlertTriangle, Users, Building2 } from 'lucide-react'
 
 // Embaralha uma cópia para o carrossel não começar sempre pelos mesmos nomes
@@ -108,6 +109,9 @@ export default function Home() {
             <ResearcherCarousel researchers={apiResearchers} />
           )}
         </div>
+
+        {/* Seção de Instituições Envolvidas */}
+        <InstitutionsSection />
       </section>
     </main>
   )

@@ -24,37 +24,40 @@ export function formatIssn(issn) {
   return issn
 }
 
-async function fetchBibliographicProduction(params, signal) {
-  const endpoints = [
-    'bibliographic_production_researcher',
-    'bibliographic_production_article',
-    'bibliographic_production',
-  ]
+export async function getQualisPorPesquisadorNosAnos(
+  id,
+  ano = '',
+  qualis = [],
+  signal,
+) {
+  const listaQualis = Array.isArray(qualis) && qualis.length > 0 ? qualis.join(';') : ''
+  let todosOsDados = []
+  let paginaAtual = 1
+  let temMaisDados = true
 
-  let lastError = null
-  for (const endpoint of endpoints) {
-    try {
-      const response = await api.get(endpoint, { params, signal })
-      const data = response.data
-      if (Array.isArray(data)) return data
-      if (Array.isArray(data?.data)) return data.data
-      if (Array.isArray(data?.items)) return data.items
-      return []
-    } catch (err) {
-      if (signal?.aborted) throw err
-      lastError = err
-      const status = err?.response?.status
-      // Se for 404, tenta o próximo alias do endpoint de produção bibliográfica
-      if (status && status !== 404) {
-        break
+  while (temMaisDados) {
+    const url =
+      `bibliographic_production_researcher?terms=&researcher_id=${id || ''}` +
+      `&type=ARTICLE&qualis=${listaQualis}&year=${ano || ''}&page=${paginaAtual}`
+
+    const { data } = await api.get(url, { signal })
+    const arrayDados = Array.isArray(data) ? data : []
+
+    if (arrayDados.length === 0) {
+      temMaisDados = false
+    } else {
+      todosOsDados = [...todosOsDados, ...arrayDados]
+      if (arrayDados.length < 100) {
+        temMaisDados = false
       }
+      paginaAtual++
     }
   }
 
-  throw lastError || new Error('Não foi possível carregar a produção bibliográfica.')
+  return todosOsDados
 }
 
-// Busca os artigos de um pesquisador na API (bibliographic_production)
+// Busca todos os artigos de um pesquisador na API paginando até o fim
 export function useBibliographicProduction(researcherId, lattesId, type = 'ARTICLE') {
   const [articles, setArticles] = useState([])
   const [loading, setLoading] = useState(Boolean(researcherId || lattesId))
@@ -71,14 +74,7 @@ export function useBibliographicProduction(researcherId, lattesId, type = 'ARTIC
     setLoading(true)
     setError(null)
 
-    const params = {
-      terms: '',
-      type,
-    }
-    if (researcherId) params.researcher_id = researcherId
-    if (lattesId && !researcherId) params.lattes_id = lattesId
-
-    fetchBibliographicProduction(params, controller.signal)
+    getQualisPorPesquisadorNosAnos(researcherId || '', '', [], controller.signal)
       .then((list) => {
         const normalized = list
           .map((item) => ({
