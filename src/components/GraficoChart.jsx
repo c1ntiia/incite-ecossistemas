@@ -11,7 +11,7 @@ import {
 
 const QUALIS_KEYS = ['A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4', 'C', 'SQ']
 const LIVROS_KEYS = ['Livro', 'Capitulo']
-const TECNICA_KEYS = ['Software', 'Patente', 'Marca']
+const TECNICA_KEYS = ['Software', 'Patente', 'Marca', 'Relatorio']
 const ORIENTACOES_KEYS = [
   'IniciacaoCientifica',
   'DissertacaoDeMestrado',
@@ -21,86 +21,100 @@ const ORIENTACOES_KEYS = [
   'SupervisaoPos',
 ]
 
+const DEFAULT_FILTRO_ANO = [new Date().getFullYear() - 10]
+const DEFAULT_FILTRO_QUALIS = []
+
+function buildQualisPorAno(lista, minYearHint) {
+  const dadosGraficoQualis = []
+  const yearsInList = lista
+    .map((item) => Number(item.year))
+    .filter((y) => Number.isFinite(y) && y > 1900)
+
+  if (lista.length === 0 && !minYearHint) {
+    return []
+  }
+
+  const currentMaxYear = 2026
+  const parsedHint = Number(minYearHint)
+  const minYear =
+    Number.isFinite(parsedHint) && parsedHint > 1900
+      ? parsedHint
+      : yearsInList.length > 0
+        ? Math.min(...yearsInList)
+        : currentMaxYear
+  const maxYear =
+    yearsInList.length > 0
+      ? Math.max(currentMaxYear, ...yearsInList)
+      : Math.max(currentMaxYear, minYear)
+
+  if (Number.isFinite(minYear) && Number.isFinite(maxYear) && minYear <= maxYear) {
+    for (let y = minYear; y <= maxYear; y++) {
+      dadosGraficoQualis.push({ ano: y })
+    }
+  }
+
+  lista.forEach((artigo) => {
+    const year = Number(artigo.year) || artigo.year
+    if (!year) return
+
+    const rawQualis = String(artigo.qualis || 'SQ').toUpperCase().trim()
+    const qualis = QUALIS_KEYS.includes(rawQualis) ? rawQualis : 'SQ'
+
+    let anoData = dadosGraficoQualis.find((item) => item.ano === year)
+    if (!anoData) {
+      anoData = { ano: year }
+      dadosGraficoQualis.push(anoData)
+    }
+
+    if (qualis) {
+      anoData[qualis] = (anoData[qualis] || 0) + 1
+    }
+
+    if (artigo.categoriaGrafico) {
+      anoData[artigo.categoriaGrafico] = (anoData[artigo.categoriaGrafico] || 0) + 1
+    }
+  })
+
+  dadosGraficoQualis.sort((a, b) => Number(a.ano) - Number(b.ano))
+  return dadosGraficoQualis
+}
+
 export function GraficoChart({
   idPesquisador = '',
-  filtroAno = [new Date().getFullYear() - 10],
-  filtroQualis = [],
+  filtroAno = null,
+  filtroQualis = DEFAULT_FILTRO_QUALIS,
   className = '',
   tipo = 'artigos',
   items = null,
 }) {
-  const [, setFormatoChart] = useState(formatoChartArtigo)
-  const [qualisPorAno, setQualisPorAno] = useState([])
-  const [dadosQualis, setDadosQualis] = useState([])
+  const [fetchedQualisPorAno, setFetchedQualisPorAno] = useState([])
   const [hoveredYear, setHoveredYear] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    switch (tipo) {
-      case 'artigos':
-        setFormatoChart(formatoChartArtigo)
-        break
-      case 'livrosECapitulos':
-        setFormatoChart(formatoChartCapituloLivros)
-        break
-      case 'producaoTecnica':
-        setFormatoChart(formatoChartProducaoTecnica)
-        break
-      case 'orientacoes':
-        setFormatoChart(formatoChartOrientacoes)
-        break
-      case 'relatorioTecnico':
-      default:
-        setFormatoChart(formatoChartArtigo)
-        break
-    }
-  }, [tipo])
-
-  const buildQualisPorAno = (lista) => {
-    const dadosGraficoQualis = []
-
-    lista.forEach((artigo) => {
-      const year = Number(artigo.year) || artigo.year
-      if (!year) return
-
-      const rawQualis = String(artigo.qualis || 'SQ').toUpperCase().trim()
-      const qualis = QUALIS_KEYS.includes(rawQualis) ? rawQualis : 'SQ'
-
-      let anoData = dadosGraficoQualis.find((item) => item.ano === year)
-      if (!anoData) {
-        anoData = { ano: year }
-        dadosGraficoQualis.push(anoData)
-      }
-
-      if (qualis) {
-        anoData[qualis] = (anoData[qualis] || 0) + 1
-      }
-
-      if (artigo.categoriaGrafico) {
-        anoData[artigo.categoriaGrafico] = (anoData[artigo.categoriaGrafico] || 0) + 1
-      }
-    })
-
-    dadosGraficoQualis.sort((a, b) => Number(a.ano) - Number(b.ano))
-    return dadosGraficoQualis
-  }
+  const hasExternalItems = Array.isArray(items)
+  const hasExplicitFiltroAno = Array.isArray(filtroAno) && filtroAno.length > 0
+  const anoStr = hasExplicitFiltroAno
+    ? String(filtroAno[0])
+    : String(DEFAULT_FILTRO_ANO[0])
+  const minYearHint = hasExplicitFiltroAno ? Number(filtroAno[0]) : null
+  const qualisKey = Array.isArray(filtroQualis) ? filtroQualis.join(';') : ''
 
   useEffect(() => {
-    if (Array.isArray(items)) {
-      const agrupado = buildQualisPorAno(items)
-      setQualisPorAno(agrupado)
+    if (hasExternalItems) {
       return
     }
 
     const controller = new AbortController()
-    const anoStr =
-      Array.isArray(filtroAno) && filtroAno.length > 0 ? String(filtroAno[0]) : '2016'
+    const qualisList = qualisKey ? qualisKey.split(';') : []
 
-    setLoading(true)
-    getProducoesPorTipo(tipo, anoStr, filtroQualis, idPesquisador, controller.signal)
+    Promise.resolve()
+      .then(() => {
+        if (!controller.signal.aborted) setLoading(true)
+        return getProducoesPorTipo(tipo, anoStr, qualisList, idPesquisador, controller.signal)
+      })
       .then((artigos) => {
-        const agrupado = buildQualisPorAno(artigos)
-        setQualisPorAno(agrupado)
+        const agrupado = buildQualisPorAno(artigos, Number(anoStr))
+        setFetchedQualisPorAno(agrupado)
       })
       .catch((error) => {
         if (!controller.signal.aborted) {
@@ -112,13 +126,14 @@ export function GraficoChart({
       })
 
     return () => controller.abort()
-  }, [items, filtroAno, filtroQualis, tipo, idPesquisador])
+  }, [hasExternalItems, anoStr, qualisKey, tipo, idPesquisador])
 
-  useEffect(() => {
-    if (qualisPorAno !== undefined && qualisPorAno !== null) {
-      setDadosQualis(qualisPorAno)
+  const dadosQualis = useMemo(() => {
+    if (hasExternalItems) {
+      return buildQualisPorAno(items, minYearHint)
     }
-  }, [qualisPorAno])
+    return fetchedQualisPorAno
+  }, [hasExternalItems, items, minYearHint, fetchedQualisPorAno])
 
   const seriesKeys = useMemo(() => {
     if (tipo === 'artigos') return QUALIS_KEYS
@@ -192,7 +207,11 @@ export function GraficoChart({
                 </div>
 
                 {/* Colunas por Ano (sem overflow-x-auto para não cortar o tooltip verticalmente) */}
-                <div className="relative z-10 flex-1 flex items-end justify-around gap-1 sm:gap-2.5 px-1 sm:px-2 pb-7 overflow-visible">
+                <div
+                  className={`relative z-10 flex-1 flex items-end justify-around ${
+                    dadosQualis.length > 16 ? 'gap-0.5 sm:gap-1' : 'gap-1 sm:gap-2.5'
+                  } px-1 sm:px-2 pb-7 overflow-visible`}
+                >
                   {dadosQualis.map((row, idx) => {
                     const totalAno = seriesKeys.reduce(
                       (acc, k) => acc + (Number(row[k]) || 0),
@@ -211,18 +230,18 @@ export function GraficoChart({
                     return (
                       <div
                         key={row.ano}
-                        className="relative flex-1 min-w-[20px] max-w-[56px] h-full flex flex-col justify-end items-center group cursor-pointer rounded-t-lg hover:bg-emerald-50/50 transition-colors"
+                        className="relative flex-1 min-w-0 max-w-[56px] h-full flex flex-col justify-end items-center group cursor-pointer rounded-t-lg hover:bg-emerald-50/50 transition-colors"
                         onMouseEnter={() => setHoveredYear(row.ano)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
                         {/* Tooltip Flutuante */}
                         {isHovered && totalAno > 0 && (
                           <div
-                            className={`absolute -top-3 -translate-y-full ${tooltipAlignClass} z-50 w-56 rounded-2xl bg-slate-900/95 text-white p-3.5 text-xs shadow-2xl border border-slate-700 pointer-events-none`}
+                            className={`absolute -top-3 -translate-y-full ${tooltipAlignClass} z-50 w-56 rounded-2xl bg-emerald-50/95 backdrop-blur-sm text-gray-800 p-3.5 text-xs shadow-xl border border-emerald-200 pointer-events-none`}
                           >
-                            <p className="font-bold text-emerald-300 border-b border-slate-700 pb-1.5 mb-2 flex justify-between items-center">
+                            <p className="font-bold text-emerald-900 border-b border-emerald-200 pb-1.5 mb-2 flex justify-between items-center">
                               <span>Ano {row.ano}</span>
-                              <span className="bg-emerald-500/20 text-emerald-200 px-2 py-0.5 rounded-full text-[11px]">
+                              <span className="bg-emerald-200/70 text-emerald-900 px-2 py-0.5 rounded-full text-[11px]">
                                 Total: {totalAno}
                               </span>
                             </p>
@@ -237,9 +256,9 @@ export function GraficoChart({
                                         className="h-2.5 w-2.5 rounded-sm shrink-0"
                                         style={{ backgroundColor: getSeriesColor(k) }}
                                       />
-                                      <span className="text-slate-200">{getSeriesLabel(k)}</span>
+                                      <span className="text-gray-700">{getSeriesLabel(k)}</span>
                                     </span>
-                                    <span className="font-bold text-white">{val}</span>
+                                    <span className="font-bold text-emerald-950">{val}</span>
                                   </div>
                                 )
                               })}
@@ -272,7 +291,13 @@ export function GraficoChart({
                         </div>
 
                         {/* Rótulo do Eixo X (Ano) */}
-                        <span className="absolute -bottom-6 text-[10px] sm:text-xs font-medium text-gray-500 group-hover:text-emerald-700 group-hover:font-bold transition-colors">
+                        <span
+                          className={`absolute -bottom-6 ${
+                            dadosQualis.length > 18
+                              ? 'text-[9px] sm:text-[10px] -rotate-45 origin-top'
+                              : 'text-[10px] sm:text-xs'
+                          } font-medium text-gray-500 group-hover:text-emerald-700 group-hover:font-bold transition-colors whitespace-nowrap`}
+                        >
                           {row.ano}
                         </span>
                       </div>

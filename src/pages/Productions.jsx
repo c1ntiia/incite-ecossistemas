@@ -12,7 +12,6 @@ import {
   FileCheck,
   FileText,
   Filter,
-  GraduationCap,
   Search,
   Star,
   Tag,
@@ -27,8 +26,6 @@ const PRODUCTION_TABS = [
   { id: 'artigos', label: 'Artigos', icon: FileText },
   { id: 'livrosECapitulos', label: 'Livros e Capítulos', icon: BookOpen },
   { id: 'producaoTecnica', label: 'Produção Técnica', icon: Cpu },
-  { id: 'relatorioTecnico', label: 'Relatórios Técnicos', icon: FileCheck },
-  { id: 'orientacoes', label: 'Orientações', icon: GraduationCap },
 ]
 
 const QUALIS_OPTIONS = ['A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4', 'C', 'SQ']
@@ -37,6 +34,7 @@ const TECNICA_SUBTYPES = [
   { id: 'Software', label: 'Softwares', color: CoresQualis.Software, icon: Code },
   { id: 'Patente', label: 'Patentes', color: CoresQualis.Patente, icon: Copyright },
   { id: 'Marca', label: 'Marcas', color: CoresQualis.Marca, icon: Tag },
+  { id: 'Relatorio', label: 'Relatórios Técnicos', color: CoresQualis.Relatorio, icon: FileCheck },
 ]
 
 const LIVROS_SUBTYPES = [
@@ -63,94 +61,122 @@ function ProductionItemCard({ item, tipo }) {
         : null
 
   return (
-    <li className="bg-white/95 rounded-[2rem] p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-emerald-200/80 transition-all">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {item.year && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-0.5 text-xs font-bold">
-              <Calendar className="h-3 w-3" />
-              {item.year}
-            </span>
-          )}
+    <li className="flex flex-col justify-between bg-white/95 rounded-2xl p-4 shadow-sm border border-gray-200 hover:shadow-md hover:border-emerald-200/80 transition-all">
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {item.year && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold">
+                <Calendar className="h-3 w-3" />
+                {item.year}
+              </span>
+            )}
 
-          {tipo === 'artigos' && item.qualis && (
-            <span
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-bold shadow-sm"
-              style={{
-                backgroundColor: CoresQualis[item.qualis] || CoresQualis.SQ,
-                color: ['A3', 'A4', 'B3', 'B4'].includes(item.qualis)
-                  ? '#0f172a'
-                  : '#ffffff',
-              }}
+            {tipo === 'artigos' && item.qualis && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold shadow-sm"
+                style={{
+                  backgroundColor: CoresQualis[item.qualis] || CoresQualis.SQ,
+                  color: ['A3', 'A4', 'B3', 'B4'].includes(item.qualis)
+                    ? '#0f172a'
+                    : '#ffffff',
+                }}
+              >
+                {item.qualis === 'SQ' ? 'Sem Qualis' : `Qualis ${item.qualis}`}
+              </span>
+            )}
+
+            {item.subtipo && (
+              <span
+                className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold"
+                style={
+                  badgeColor
+                    ? { backgroundColor: badgeColor, color: '#ffffff' }
+                    : { backgroundColor: '#f3f4f6', color: '#374151' }
+                }
+              >
+                {item.subtipo}
+              </span>
+            )}
+
+            {item.relevance && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-0.5 text-[11px] font-semibold">
+                <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                Relevante
+              </span>
+            )}
+          </div>
+
+          {doiUrl && (
+            <a
+              href={doiUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`DOI: ${item.doi}`}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50/70 hover:bg-emerald-100/80 px-2.5 py-1 rounded-full transition-colors"
             >
-              {item.qualis === 'SQ' ? 'Sem Qualis' : `Qualis ${item.qualis}`}
-            </span>
-          )}
-
-          {item.subtipo && (
-            <span
-              className="inline-flex items-center rounded-full px-3 py-0.5 text-xs font-bold"
-              style={
-                badgeColor
-                  ? { backgroundColor: badgeColor, color: '#ffffff' }
-                  : { backgroundColor: '#f3f4f6', color: '#374151' }
-              }
-            >
-              {item.subtipo}
-            </span>
-          )}
-
-          {item.relevance && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 px-3 py-0.5 text-xs font-semibold">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
-              Relevante
-            </span>
+              DOI
+              <ExternalLink className="h-3 w-3" />
+            </a>
           )}
         </div>
 
-        {doiUrl && (
-          <a
-            href={doiUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50/70 hover:bg-emerald-100/80 px-3.5 py-1.5 rounded-full transition-colors"
-          >
-            DOI: {item.doi}
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        )}
+        <h3
+          className="text-sm font-bold text-gray-900 leading-snug line-clamp-2"
+          title={item.cleanTitle || item.title}
+        >
+          {item.cleanTitle || item.title}
+        </h3>
       </div>
 
-      <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
-        {item.cleanTitle || item.title}
-      </h3>
-
-      <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-gray-600">
-        {item.researcherName && (
-          <span className="inline-flex items-center gap-1.5 font-medium">
-            <User className="h-4 w-4 text-emerald-600 shrink-0" />
+      <div className="mt-3 pt-2.5 border-t border-gray-100 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600">
+        {Array.isArray(item.researchers) && item.researchers.length > 0 ? (
+          <span className="inline-flex items-center gap-1 font-medium text-xs text-gray-700 flex-wrap">
+            <User className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+            {item.researchers.map((r, idx) => {
+              const rId = r.id || r.lattes_id
+              return (
+                <span key={rId || r.name || idx} className="inline-flex items-center">
+                  {idx > 0 && <span className="text-gray-400 mr-1">,</span>}
+                  {rId ? (
+                    <Link
+                      to={`/pesquisadores/${rId}`}
+                      className="text-emerald-700 hover:text-emerald-800 hover:underline font-semibold"
+                    >
+                      {r.name}
+                    </Link>
+                  ) : (
+                    <span>{r.name}</span>
+                  )}
+                </span>
+              )
+            })}
+          </span>
+        ) : item.researcherName ? (
+          <span className="inline-flex items-center gap-1 font-medium line-clamp-1">
+            <User className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
             {researcherProfileId ? (
               <Link
                 to={`/pesquisadores/${researcherProfileId}`}
-                className="text-emerald-700 hover:text-emerald-800 hover:underline font-semibold"
+                className="text-emerald-700 hover:text-emerald-800 hover:underline font-semibold truncate"
               >
                 {item.researcherName}
               </Link>
             ) : (
-              <span>{item.researcherName}</span>
+              <span className="truncate">{item.researcherName}</span>
             )}
           </span>
-        )}
+        ) : null}
 
         {item.magazine && (
-          <span className="inline-flex items-center gap-1.5 font-medium text-gray-700">
-            <BookOpen className="h-4 w-4 text-sky-600 shrink-0" />
-            {item.magazine}
+          <span className="inline-flex items-center gap-1 font-medium text-gray-700 line-clamp-1">
+            <BookOpen className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+            <span className="truncate">{item.magazine}</span>
           </span>
         )}
 
         {item.publishing_company && (
-          <span className="text-gray-600">
+          <span className="text-gray-600 truncate">
             Editora: <strong className="font-medium">{item.publishing_company}</strong>
           </span>
         )}
@@ -169,7 +195,7 @@ function ProductionItemCard({ item, tipo }) {
 
         {item.code && (
           <span className="text-gray-500">
-            Registro / Código: <strong className="font-medium text-gray-700">{item.code}</strong>
+            Código: <strong className="font-medium text-gray-700">{item.code}</strong>
           </span>
         )}
 
@@ -188,19 +214,6 @@ function ProductionItemCard({ item, tipo }) {
         {item.environment && (
           <span className="text-gray-500">
             Ambiente: <strong className="font-medium text-gray-700">{item.environment}</strong>
-          </span>
-        )}
-
-        {item.nature && tipo !== 'orientacoes' && (
-          <span className="text-gray-500">
-            Natureza: <strong className="font-medium text-gray-700">{item.nature}</strong>
-          </span>
-        )}
-
-        {item.oriented && (
-          <span className="text-gray-600">
-            Orientando(a): <strong className="font-medium">{item.oriented}</strong>
-            {item.status ? ` (${item.status})` : ''}
           </span>
         )}
       </div>
@@ -245,21 +258,26 @@ export default function Productions() {
       if (!q) return true
 
       const titleMatch = normalizeText(item.cleanTitle || item.title || '').includes(q)
-      const authorMatch = normalizeText(item.researcherName || '').includes(q)
+      const authorMatch =
+        normalizeText(item.researcherName || '').includes(q) ||
+        (Array.isArray(item.researchers) &&
+          item.researchers.some((r) => normalizeText(r.name || '').includes(q)))
       const magMatch = normalizeText(
         item.magazine || item.publishing_company || item.project_name || '',
       ).includes(q)
       const codeMatch = normalizeText(item.doi || item.isbn || item.code || '').includes(q)
-      return titleMatch || authorMatch || magMatch || codeMatch
+      const typeMatch = normalizeText(item.subtipo || item.category || '').includes(q)
+      return titleMatch || authorMatch || magMatch || codeMatch || typeMatch
     })
   }, [items, query, filtroSubtipo])
 
-  // Contadores separados por subtipo (Softwares, Patentes, Marcas / Livros, Capítulos)
+  // Contadores separados por subtipo (Softwares, Patentes, Marcas, Relatórios / Livros, Capítulos)
   const subtypeCounts = useMemo(() => {
     const counts = {
       Software: 0,
       Patente: 0,
       Marca: 0,
+      Relatorio: 0,
       Livro: 0,
       Capitulo: 0,
     }
@@ -278,7 +296,11 @@ export default function Productions() {
     ).length
     const researchersCount = new Set(
       filteredItems
-        .map((i) => i.researcher_id || i.lattes_id || i.researcherName)
+        .flatMap((i) =>
+          Array.isArray(i.researchers) && i.researchers.length > 0
+            ? i.researchers.map((r) => r.id || r.lattes_id || r.name)
+            : [i.researcher_id || i.lattes_id || i.researcherName],
+        )
         .filter(Boolean),
     ).size
     const years = filteredItems.map((i) => Number(i.year)).filter(Boolean)
@@ -317,6 +339,13 @@ export default function Productions() {
           color: CoresQualis.Marca,
           list: filteredItems.filter((i) => i.categoriaGrafico === 'Marca'),
         },
+        {
+          id: 'Relatorio',
+          title: 'Todos os Relatórios Técnicos',
+          icon: FileCheck,
+          color: CoresQualis.Relatorio,
+          list: filteredItems.filter((i) => i.categoriaGrafico === 'Relatorio'),
+        },
       ]
     }
 
@@ -352,12 +381,11 @@ export default function Productions() {
         <h1 className="text-4xl font-bold tracking-tight">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-lime-500 to-sky-400">
             Produções
-          </span>{' '}
-          da rede
+          </span>          
         </h1>
         <p className="mt-3 text-sm text-gray-600">
           Acompanhe a evolução anual e consulte artigos, livros, capítulos, softwares, patentes,
-          marcas, relatórios e orientações dos pesquisadores do INCITE Ecossistemas.
+          marcas e relatórios técnicos dos pesquisadores do INCITE.
         </p>
       </header>
 
@@ -563,7 +591,7 @@ export default function Productions() {
 
       {/* Indicadores Rápidos */}
       {tipo === 'producaoTecnica' ? (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           <div className="bg-white/90 rounded-[2rem] p-5 shadow-sm border border-gray-100 flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
               <BarChart3 className="h-6 w-6" />
@@ -616,6 +644,20 @@ export default function Productions() {
               </p>
               <p className="text-2xl font-bold text-gray-900">
                 {loading ? '...' : subtypeCounts.Marca}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white/90 rounded-[2rem] p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+              <FileCheck className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                Relatórios
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {loading ? '...' : subtypeCounts.Relatorio}
               </p>
             </div>
           </div>
@@ -758,7 +800,7 @@ export default function Productions() {
       <section className="mb-10">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-800">
-            Gráfico detalhado — {PRODUCTION_TABS.find((t) => t.id === tipo)?.label} por ano
+            Gráfico — {PRODUCTION_TABS.find((t) => t.id === tipo)?.label} por ano
           </h2>
           <span className="text-xs text-gray-500">
             Passe o mouse sobre as barras para ver os detalhes por ano
@@ -776,11 +818,11 @@ export default function Productions() {
       {/* Listagem de Produções */}
       <section>
         {loading ? (
-          <div className="space-y-4" aria-busy="true">
-            {Array.from({ length: 5 }).map((_, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" aria-busy="true">
+            {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="h-32 rounded-[2rem] bg-white/80 shadow-sm border border-gray-100 animate-pulse"
+                className="h-36 rounded-2xl bg-white/80 shadow-sm border border-gray-100 animate-pulse"
               />
             ))}
           </div>
@@ -815,11 +857,11 @@ export default function Productions() {
                   </div>
 
                   {sec.list.length === 0 ? (
-                    <div className="bg-white/80 rounded-[2rem] p-8 text-center text-sm text-gray-500 border border-gray-100">
+                    <div className="bg-white/80 rounded-2xl p-8 text-center text-sm text-gray-500 border border-gray-100">
                       Nenhum registro encontrado nesta categoria para o período selecionado.
                     </div>
                   ) : (
-                    <ul className="space-y-4">
+                    <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {sec.list.map((item, idx) => (
                         <ProductionItemCard
                           key={item.id || `${item.cleanTitle}-${item.year}-${idx}`}
@@ -841,7 +883,7 @@ export default function Productions() {
               </h2>
             </div>
 
-            <ul className="space-y-4">
+            <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {visibleItems.map((item, idx) => (
                 <ProductionItemCard
                   key={item.id || `${item.cleanTitle}-${item.year}-${idx}`}
@@ -855,7 +897,7 @@ export default function Productions() {
               <div className="mt-8 text-center">
                 <button
                   type="button"
-                  onClick={() => setVisibleCount((prev) => prev + 20)}
+                  onClick={() => setVisibleCount((prev) => prev + 24)}
                   className="inline-flex items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 text-sm font-semibold shadow-md transition-all"
                 >
                   Mostrar mais ({filteredItems.length - visibleCount} restantes)

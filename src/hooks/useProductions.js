@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/api'
-import { cleanArticleTitle } from '@/hooks/useBibliographicProduction'
+import {
+  cleanArticleTitle,
+  deduplicateProductions,
+} from '@/hooks/useBibliographicProduction'
 
 export const CoresQualis = {
   A1: '#006837',
@@ -18,6 +21,7 @@ export const CoresQualis = {
   Software: '#0ea5e9',
   Patente: '#059669',
   Marca: '#f59e0b',
+  Relatorio: '#6366f1',
   IniciacaoCientifica: '#10b981',
   DissertacaoDeMestrado: '#0284c7',
   TeseDeDoutorado: '#0f766e',
@@ -48,6 +52,7 @@ export const formatoChartProducaoTecnica = {
   Software: { label: 'Softwares', color: CoresQualis.Software },
   Patente: { label: 'Patentes', color: CoresQualis.Patente },
   Marca: { label: 'Marcas', color: CoresQualis.Marca },
+  Relatorio: { label: 'Relatórios Técnicos', color: CoresQualis.Relatorio },
 }
 
 export const formatoChartOrientacoes = {
@@ -92,7 +97,6 @@ async function fetchAllPages(buildRequest, signal) {
     const arrayDados = extractArray(data)
 
     if (!arrayDados || arrayDados.length === 0) {
-      temMaisDados = false
       break
     }
 
@@ -101,7 +105,6 @@ async function fetchAllPages(buildRequest, signal) {
     const firstKey =
       firstItem?.id || `${firstItem?.title || ''}-${firstItem?.year || ''}-${firstItem?.name || ''}`
     if (paginaAtual > 1 && firstKey && seenKeys.has(firstKey)) {
-      temMaisDados = false
       break
     }
     if (firstKey) seenKeys.add(firstKey)
@@ -139,7 +142,7 @@ export async function getQualisTodosPesquisadoresNosAnos(
     signal,
   )
 
-  return todosOsDados.map((item) => {
+  const mapped = todosOsDados.map((item) => {
     const rawQualis = String(item.qualis || 'SQ').toUpperCase().trim()
     const normalizedQualis = formatoChartArtigo[rawQualis] ? rawQualis : 'SQ'
     return {
@@ -151,6 +154,8 @@ export async function getQualisTodosPesquisadoresNosAnos(
       subtipo: 'Artigo Científico',
     }
   })
+
+  return deduplicateProductions(mapped)
 }
 
 // Busca produções de acordo com a aba selecionada (paginando todos os registros)
@@ -216,29 +221,58 @@ export async function getProducoesPorTipo(
           }))
         : []
 
-    return [...books, ...chapters].filter(
+    const list = [...books, ...chapters].filter(
       (item) => !ano || !Number(item.year) || Number(item.year) >= Number(ano),
     )
+    return deduplicateProductions(list)
   }
 
   if (tipo === 'producaoTecnica') {
-    const [patentsRes, softwareRes, brandRes] = await Promise.allSettled([
-      fetchAllPages((page) => ({ url: 'production/patent', params: buildBaseParams(page) }), signal),
+    const [patentsRes, softwareRes, brandRes, reportRes] = await Promise.allSettled([
+      fetchAllPages(
+        (page) => {
+          const params = { per_page: 100, page }
+          if (anoParam) params.year_start = anoParam
+          if (idPesquisador) params.researcher_id = idPesquisador
+          return { url: 'v2/production/patent', params }
+        },
+        signal,
+      ),
       fetchAllPages((page) => ({ url: 'production/software', params: buildBaseParams(page) }), signal),
       fetchAllPages((page) => ({ url: 'production/brand', params: buildBaseParams(page) }), signal),
+      fetchAllPages((page) => ({ url: 'production/report', params: buildBaseParams(page) }), signal),
     ])
 
     const patents =
       patentsRes.status === 'fulfilled'
-        ? patentsRes.value.map((item) => ({
-            ...item,
-            year: Number(item.year) || item.year,
-            cleanTitle: cleanArticleTitle(item.title),
-            researcherName: item.name || item.researcher || '',
-            subtipo: 'Patente',
-            qualis: 'A1',
-            categoriaGrafico: 'Patente',
-          }))
+        ? patentsRes.value.map((item) => {
+            const platformAuthors = Array.isArray(item.platform_authors)
+              ? item.platform_authors
+              : []
+            const firstAuthor = platformAuthors[0] || null
+            const researchers = platformAuthors.map((a) => ({
+              id: a.id || a.researcher_id || '',
+              name: a.name || '',
+              lattes_id: a.lattes_id || '',
+            }))
+            return {
+              ...item,
+              year: Number(item.year) || item.year,
+              cleanTitle: cleanArticleTitle(item.title),
+              researchers: researchers.length > 0 ? researchers : undefined,
+              researcherName:
+                researchers.map((r) => r.name).filter(Boolean).join(', ') ||
+                item.name ||
+                firstAuthor?.name ||
+                item.researcher ||
+                '',
+              researcher_id: item.researcher_id || firstAuthor?.id || item.researcher || '',
+              lattes_id: item.lattes_id || firstAuthor?.lattes_id || '',
+              subtipo: 'Patente',
+              qualis: 'A1',
+              categoriaGrafico: 'Patente',
+            }
+          })
         : []
 
     const softwares =
@@ -267,9 +301,23 @@ export async function getProducoesPorTipo(
           }))
         : []
 
-    return [...softwares, ...patents, ...brands].filter(
+    const reports =
+      reportRes.status === 'fulfilled'
+        ? reportRes.value.map((item) => ({
+            ...item,
+            year: Number(item.year) || item.year,
+            cleanTitle: cleanArticleTitle(item.title),
+            researcherName: item.name || item.researcher || '',
+            subtipo: 'Relatório Técnico',
+            qualis: 'A1',
+            categoriaGrafico: 'Relatorio',
+          }))
+        : []
+
+    const list = [...softwares, ...patents, ...brands, ...reports].filter(
       (item) => !ano || !Number(item.year) || Number(item.year) >= Number(ano),
     )
+    return deduplicateProductions(list)
   }
 
   if (tipo === 'relatorioTecnico') {
@@ -277,7 +325,7 @@ export async function getProducoesPorTipo(
       (page) => ({ url: 'production/report', params: buildBaseParams(page) }),
       signal,
     )
-    return list
+    const mapped = list
       .map((item) => ({
         ...item,
         year: Number(item.year) || item.year,
@@ -287,6 +335,7 @@ export async function getProducoesPorTipo(
         qualis: 'A1',
       }))
       .filter((item) => !ano || !Number(item.year) || Number(item.year) >= Number(ano))
+    return deduplicateProductions(mapped)
   }
 
   if (tipo === 'orientacoes') {
@@ -294,7 +343,7 @@ export async function getProducoesPorTipo(
       (page) => ({ url: 'production/guidance', params: buildBaseParams(page) }),
       signal,
     )
-    return list
+    const mapped = list
       .map((item) => ({
         ...item,
         year: Number(item.year) || item.year,
@@ -305,6 +354,7 @@ export async function getProducoesPorTipo(
         categoriaGrafico: classifyGuidanceNature(item.nature),
       }))
       .filter((item) => !ano || !Number(item.year) || Number(item.year) >= Number(ano))
+    return deduplicateProductions(mapped)
   }
 
   return []
@@ -315,9 +365,10 @@ export function useProductions({
   filtroAno = [new Date().getFullYear() - 10],
   filtroQualis = [],
   idPesquisador = '',
+  enabled = true,
 }) {
   const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(Boolean(enabled))
   const [error, setError] = useState(null)
 
   const anoInicial =
@@ -327,11 +378,21 @@ export function useProductions({
   const qualisKey = Array.isArray(filtroQualis) ? filtroQualis.join(';') : ''
 
   useEffect(() => {
-    const controller = new AbortController()
-    setLoading(true)
-    setError(null)
+    if (!enabled) {
+      return
+    }
 
-    getProducoesPorTipo(tipo, anoInicial, filtroQualis, idPesquisador, controller.signal)
+    const controller = new AbortController()
+    const qualisList = qualisKey ? qualisKey.split(';') : []
+
+    Promise.resolve()
+      .then(() => {
+        if (!controller.signal.aborted) {
+          setLoading(true)
+          setError(null)
+        }
+        return getProducoesPorTipo(tipo, anoInicial, qualisList, idPesquisador, controller.signal)
+      })
       .then((list) => {
         const sorted = [...list].sort(
           (a, b) =>
@@ -350,7 +411,11 @@ export function useProductions({
       })
 
     return () => controller.abort()
-  }, [tipo, anoInicial, qualisKey, idPesquisador])
+  }, [enabled, tipo, anoInicial, qualisKey, idPesquisador])
 
-  return { items, loading, error }
+  return {
+    items: enabled ? items : [],
+    loading: enabled ? loading : false,
+    error: enabled ? error : null,
+  }
 }

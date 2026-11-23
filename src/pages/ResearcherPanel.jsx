@@ -9,6 +9,7 @@ import {
   Copyright,
   Cpu,
   ExternalLink,
+  FileCheck,
   FileText,
   GraduationCap,
   Search,
@@ -19,7 +20,7 @@ import {
 import ResearcherAvatar from '@/components/ResearcherAvatar'
 import GraficoChart from '@/components/GraficoChart'
 import { Button } from '@/components/ui/button'
-import { getLattesUrl, normalizeText, researchers as localResearchers } from '@/data/researchers'
+import { getLattesUrl, normalizeText } from '@/data/researchers'
 import { useResearchers } from '@/hooks/useResearchers'
 import { formatIssn, useBibliographicProduction } from '@/hooks/useBibliographicProduction'
 import { CoresQualis, useProductions } from '@/hooks/useProductions'
@@ -63,18 +64,11 @@ export default function ResearcherPanel() {
   const [selectedYear, setSelectedYear] = useState('')
   const [expandAbstract, setExpandAbstract] = useState(false)
 
-  // Procura na lista da API (que tem id UUID + resumo + titulação) e faz fallback para a lista local
+  // Procura o pesquisador na lista da API
   const researcher = useMemo(() => {
     const normalizedParam = String(id || '').toLowerCase()
-    const fromApi = apiResearchers.find(
-      (r) =>
-        String(r.id || '').toLowerCase() === normalizedParam ||
-        String(r.lattes_id || '').toLowerCase() === normalizedParam,
-    )
-    if (fromApi) return fromApi
-
     return (
-      localResearchers.find(
+      apiResearchers.find(
         (r) =>
           String(r.id || '').toLowerCase() === normalizedParam ||
           String(r.lattes_id || '').toLowerCase() === normalizedParam,
@@ -92,12 +86,14 @@ export default function ResearcherPanel() {
     tipo: 'livrosECapitulos',
     filtroAno: [2014],
     idPesquisador: researcher?.id || '',
+    enabled: Boolean(researcher?.id),
   })
 
   const { items: techProductions, loading: loadingTech } = useProductions({
     tipo: 'producaoTecnica',
     filtroAno: [2014],
     idPesquisador: researcher?.id || '',
+    enabled: Boolean(researcher?.id),
   })
 
   // Opções únicas de Qualis e Ano para os filtros de artigos
@@ -137,14 +133,15 @@ export default function ResearcherPanel() {
     })
   }, [articles, searchQuery, selectedQualis, selectedYear])
 
-  // Contadores de livros, capítulos e produção técnica (softwares, patentes, marcas)
+  // Contadores de livros, capítulos e produção técnica (softwares, patentes, marcas, relatórios)
   const counts = useMemo(() => {
     const livros = booksAndChapters.filter((i) => i.categoriaGrafico === 'Livro')
     const capitulos = booksAndChapters.filter((i) => i.categoriaGrafico === 'Capitulo')
     const softwares = techProductions.filter((i) => i.categoriaGrafico === 'Software')
     const patentes = techProductions.filter((i) => i.categoriaGrafico === 'Patente')
     const marcas = techProductions.filter((i) => i.categoriaGrafico === 'Marca')
-    return { livros, capitulos, softwares, patentes, marcas }
+    const relatorios = techProductions.filter((i) => i.categoriaGrafico === 'Relatorio')
+    return { livros, capitulos, softwares, patentes, marcas, relatorios }
   }, [booksAndChapters, techProductions])
 
   // Estatísticas rápidas dos artigos do pesquisador
@@ -180,7 +177,7 @@ export default function ResearcherPanel() {
             Não encontramos um pesquisador correspondente ao identificador informado.
           </p>
           <Button asChild className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-6">
-            <Link to="/Home">
+            <Link to="/pesquisadores">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar para pesquisadores
             </Link>
@@ -288,9 +285,6 @@ export default function ResearcherPanel() {
         {/* Resumo do Pesquisador */}
         {abstractText && (
           <div className="relative z-10 mt-8 pt-6 border-t border-gray-100">
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-emerald-700 mb-2">
-              Resumo Profissional
-            </h2>
             <p className="text-sm sm:text-base text-gray-700 leading-relaxed text-justify">
               {isLongAbstract && !expandAbstract
                 ? `${abstractText.slice(0, 420).trim()}...`
@@ -309,8 +303,8 @@ export default function ResearcherPanel() {
         )}
       </section>
 
-      {/* Total de produções técnicas e científicas (igual ao projeto npai) */}
-      <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
+      {/* Total de produções técnicas e científicas*/}
+      <section className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4 mb-10">
         <div className="bg-white/90 rounded-[2rem] p-5 shadow-sm border border-gray-100 flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
             <FileText className="h-5 w-5" />
@@ -394,6 +388,20 @@ export default function ResearcherPanel() {
             </p>
           </div>
         </div>
+
+        <div className="bg-white/90 rounded-[2rem] p-5 shadow-sm border border-gray-100 flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+            <FileCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+              Relatórios
+            </p>
+            <p className="text-xl font-bold text-gray-900">
+              {loadingTech ? '...' : counts.relatorios.length}
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* Abas do Pesquisador: Artigos | Livros e Capítulos | Produção Técnica */}
@@ -430,7 +438,7 @@ export default function ResearcherPanel() {
             <section className="mb-10">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-bold text-gray-800">
-                  Gráfico — Quantidade de Qualis/Ano
+                  Gráfico — Quantidade de Qualis por ano
                 </h2>
                 <span className="text-xs text-gray-500">
                   Passe o mouse sobre as barras para detalhes
@@ -444,9 +452,6 @@ export default function ResearcherPanel() {
           <section>
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700 mb-1">
-                  Produção Bibliográfica
-                </p>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
                   Artigos publicados
                 </h2>
@@ -564,7 +569,7 @@ export default function ResearcherPanel() {
                 </button>
               </div>
             ) : (
-              <ul className="space-y-4">
+              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredArticles.map((article) => {
                   const formattedIssn = formatIssn(article.issn)
                   const doiUrl = article.doi
@@ -576,57 +581,63 @@ export default function ResearcherPanel() {
                   return (
                     <li
                       key={article.id || `${article.cleanTitle}-${article.year}`}
-                      className="bg-white/95 rounded-[2rem] p-6 sm:p-7 shadow-sm border border-gray-100 hover:shadow-md hover:border-emerald-200/80 transition-all duration-200"
+                      className="flex flex-col justify-between bg-white/95 rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md hover:border-emerald-200/80 transition-all duration-200"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {article.year && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-0.5 text-xs font-bold">
-                              <Calendar className="h-3 w-3" />
-                              {article.year}
-                            </span>
-                          )}
+                      <div>
+                        <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {article.year && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold">
+                                <Calendar className="h-3 w-3" />
+                                {article.year}
+                              </span>
+                            )}
 
-                          {article.qualis && (
-                            <span
-                              className={`inline-flex items-center rounded-full border px-3 py-0.5 text-xs font-bold ${getQualisBadgeClass(
-                                article.qualis,
-                              )}`}
+                            {article.qualis && (
+                              <span
+                                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${getQualisBadgeClass(
+                                  article.qualis,
+                                )}`}
+                              >
+                                Qualis {article.qualis}
+                              </span>
+                            )}
+
+                            {article.relevance && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-0.5 text-[11px] font-semibold">
+                                <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                                Relevante
+                              </span>
+                            )}
+                          </div>
+
+                          {doiUrl && (
+                            <a
+                              href={doiUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title={`DOI: ${article.doi}`}
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50/70 hover:bg-emerald-100/80 px-2.5 py-1 rounded-full transition-colors"
                             >
-                              Qualis {article.qualis}
-                            </span>
-                          )}
-
-                          {article.relevance && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 px-3 py-0.5 text-xs font-semibold">
-                              <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
-                              Relevante
-                            </span>
+                              DOI
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
                           )}
                         </div>
 
-                        {doiUrl && (
-                          <a
-                            href={doiUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50/70 hover:bg-emerald-100/80 px-3.5 py-1.5 rounded-full transition-colors"
-                          >
-                            DOI: {article.doi}
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
-                        )}
+                        <h3
+                          className="text-sm font-bold text-gray-900 leading-snug line-clamp-2"
+                          title={article.cleanTitle || article.title}
+                        >
+                          {article.cleanTitle || article.title}
+                        </h3>
                       </div>
 
-                      <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
-                        {article.cleanTitle || article.title}
-                      </h3>
-
-                      <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-gray-600">
+                      <div className="mt-3 pt-2.5 border-t border-gray-100 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600">
                         {article.magazine && (
-                          <span className="inline-flex items-center gap-1.5 font-medium text-gray-700">
-                            <BookOpen className="h-4 w-4 text-emerald-600 shrink-0" />
-                            {article.magazine}
+                          <span className="inline-flex items-center gap-1 font-medium text-gray-700 line-clamp-1">
+                            <BookOpen className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                            <span className="truncate">{article.magazine}</span>
                           </span>
                         )}
 
@@ -639,14 +650,7 @@ export default function ResearcherPanel() {
 
                         {article.jif && article.jif !== 'None' && (
                           <span className="text-gray-500">
-                            Fator de Impacto (JIF):{' '}
-                            <strong className="font-medium text-gray-700">{article.jif}</strong>
-                          </span>
-                        )}
-
-                        {article.authors && (
-                          <span className="text-gray-500 line-clamp-1">
-                            Autores: {article.authors}
+                            JIF: <strong className="font-medium text-gray-700">{article.jif}</strong>
                           </span>
                         )}
                       </div>
@@ -664,7 +668,7 @@ export default function ResearcherPanel() {
           {booksAndChapters.length > 0 && (
             <div>
               <h2 className="text-lg font-bold text-gray-800 mb-3">
-                Gráfico detalhado — Quantidade de Livros e Capítulos/Ano
+                Gráfico — Quantidade de Livros e Capítulos por ano
               </h2>
               <GraficoChart tipo="livrosECapitulos" items={booksAndChapters} />
             </div>
@@ -678,30 +682,37 @@ export default function ResearcherPanel() {
             </h3>
             {counts.capitulos.length === 0 ? (
               <div className="bg-white/90 rounded-[2rem] p-8 text-center text-gray-500 border border-gray-100">
-                Não há produção de capítulos de livros registrada para este pesquisador.
+                Não há produção de capítulos de livros registrada.
               </div>
             ) : (
-              <ul className="space-y-4">
+              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {counts.capitulos.map((cap, i) => (
                   <li
                     key={cap.id || i}
-                    className="bg-white/95 rounded-[2rem] p-6 shadow-sm border border-gray-100"
+                    className="flex flex-col justify-between bg-white/95 rounded-2xl p-4 shadow-sm border border-gray-100"
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      {cap.year && (
-                        <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-0.5 text-xs font-bold">
-                          {cap.year}
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-2">
+                        {cap.year && (
+                          <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold">
+                            {cap.year}
+                          </span>
+                        )}
+                        <span
+                          className="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
+                          style={{ backgroundColor: CoresQualis.Capitulo }}
+                        >
+                          Capítulo de Livro
                         </span>
-                      )}
-                      <span
-                        className="rounded-full px-3 py-0.5 text-xs font-bold text-white"
-                        style={{ backgroundColor: CoresQualis.Capitulo }}
+                      </div>
+                      <h4
+                        className="text-sm font-bold text-gray-900 line-clamp-2"
+                        title={cap.cleanTitle || cap.title}
                       >
-                        Capítulo de Livro
-                      </span>
+                        {cap.cleanTitle || cap.title}
+                      </h4>
                     </div>
-                    <h4 className="font-bold text-gray-900">{cap.cleanTitle || cap.title}</h4>
-                    <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-600">
+                    <div className="mt-3 pt-2.5 border-t border-gray-100 flex flex-wrap gap-3 text-xs text-gray-600">
                       {cap.publishing_company && <span>Editora: {cap.publishing_company}</span>}
                       {cap.isbn && <span>ISBN: {cap.isbn}</span>}
                     </div>
@@ -719,30 +730,37 @@ export default function ResearcherPanel() {
             </h3>
             {counts.livros.length === 0 ? (
               <div className="bg-white/90 rounded-[2rem] p-8 text-center text-gray-500 border border-gray-100">
-                Não há produção de livros registrada para este pesquisador.
+                Não há produção de livros registrada.
               </div>
             ) : (
-              <ul className="space-y-4">
+              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {counts.livros.map((liv, i) => (
                   <li
                     key={liv.id || i}
-                    className="bg-white/95 rounded-[2rem] p-6 shadow-sm border border-gray-100"
+                    className="flex flex-col justify-between bg-white/95 rounded-2xl p-4 shadow-sm border border-gray-100"
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      {liv.year && (
-                        <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-0.5 text-xs font-bold">
-                          {liv.year}
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-2">
+                        {liv.year && (
+                          <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold">
+                            {liv.year}
+                          </span>
+                        )}
+                        <span
+                          className="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
+                          style={{ backgroundColor: CoresQualis.Livro }}
+                        >
+                          Livro
                         </span>
-                      )}
-                      <span
-                        className="rounded-full px-3 py-0.5 text-xs font-bold text-white"
-                        style={{ backgroundColor: CoresQualis.Livro }}
+                      </div>
+                      <h4
+                        className="text-sm font-bold text-gray-900 line-clamp-2"
+                        title={liv.cleanTitle || liv.title}
                       >
-                        Livro
-                      </span>
+                        {liv.cleanTitle || liv.title}
+                      </h4>
                     </div>
-                    <h4 className="font-bold text-gray-900">{liv.cleanTitle || liv.title}</h4>
-                    <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-600">
+                    <div className="mt-3 pt-2.5 border-t border-gray-100 flex flex-wrap gap-3 text-xs text-gray-600">
                       {liv.publishing_company && <span>Editora: {liv.publishing_company}</span>}
                       {liv.isbn && <span>ISBN: {liv.isbn}</span>}
                     </div>
@@ -759,7 +777,7 @@ export default function ResearcherPanel() {
           {techProductions.length > 0 && (
             <div>
               <h2 className="text-lg font-bold text-gray-800 mb-3">
-                Gráfico detalhado — Softwares, Patentes e Marcas por Ano
+                Gráfico — Softwares, Patentes, Marcas e Relatórios por Ano
               </h2>
               <GraficoChart tipo="producaoTecnica" items={techProductions} />
             </div>
@@ -773,29 +791,34 @@ export default function ResearcherPanel() {
             </h3>
             {counts.softwares.length === 0 ? (
               <div className="bg-white/90 rounded-[2rem] p-8 text-center text-gray-500 border border-gray-100">
-                Nenhum software registrado para este pesquisador.
+                Nenhum software registrado.
               </div>
             ) : (
-              <ul className="space-y-4">
+              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {counts.softwares.map((sw, i) => (
                   <li
                     key={sw.id || i}
-                    className="bg-white/95 rounded-[2rem] p-6 shadow-sm border border-gray-100"
+                    className="flex flex-col justify-between bg-white/95 rounded-2xl p-4 shadow-sm border border-gray-100"
                   >
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-1.5 mb-2">
                       {sw.year && (
-                        <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-0.5 text-xs font-bold">
+                        <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold">
                           {sw.year}
                         </span>
                       )}
                       <span
-                        className="rounded-full px-3 py-0.5 text-xs font-bold text-white"
+                        className="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
                         style={{ backgroundColor: CoresQualis.Software }}
                       >
                         Software
                       </span>
                     </div>
-                    <h4 className="font-bold text-gray-900">{sw.cleanTitle || sw.title}</h4>
+                    <h4
+                      className="text-sm font-bold text-gray-900 line-clamp-2"
+                      title={sw.cleanTitle || sw.title}
+                    >
+                      {sw.cleanTitle || sw.title}
+                    </h4>
                   </li>
                 ))}
               </ul>
@@ -810,31 +833,40 @@ export default function ResearcherPanel() {
             </h3>
             {counts.patentes.length === 0 ? (
               <div className="bg-white/90 rounded-[2rem] p-8 text-center text-gray-500 border border-gray-100">
-                Nenhuma patente registrada para este pesquisador.
+                Nenhuma patente registrada.
               </div>
             ) : (
-              <ul className="space-y-4">
+              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {counts.patentes.map((pat, i) => (
                   <li
                     key={pat.id || i}
-                    className="bg-white/95 rounded-[2rem] p-6 shadow-sm border border-gray-100"
+                    className="flex flex-col justify-between bg-white/95 rounded-2xl p-4 shadow-sm border border-gray-100"
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      {pat.year && (
-                        <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-0.5 text-xs font-bold">
-                          {pat.year}
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-2">
+                        {pat.year && (
+                          <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold">
+                            {pat.year}
+                          </span>
+                        )}
+                        <span
+                          className="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
+                          style={{ backgroundColor: CoresQualis.Patente }}
+                        >
+                          Patente
                         </span>
-                      )}
-                      <span
-                        className="rounded-full px-3 py-0.5 text-xs font-bold text-white"
-                        style={{ backgroundColor: CoresQualis.Patente }}
+                      </div>
+                      <h4
+                        className="text-sm font-bold text-gray-900 line-clamp-2"
+                        title={pat.cleanTitle || pat.title}
                       >
-                        Patente
-                      </span>
+                        {pat.cleanTitle || pat.title}
+                      </h4>
                     </div>
-                    <h4 className="font-bold text-gray-900">{pat.cleanTitle || pat.title}</h4>
                     {pat.code && (
-                      <p className="mt-1 text-xs text-gray-500">Código: {pat.code}</p>
+                      <p className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
+                        Código: {pat.code}
+                      </p>
                     )}
                   </li>
                 ))}
@@ -850,29 +882,78 @@ export default function ResearcherPanel() {
             </h3>
             {counts.marcas.length === 0 ? (
               <div className="bg-white/90 rounded-[2rem] p-8 text-center text-gray-500 border border-gray-100">
-                Nenhuma marca registrada para este pesquisador.
+                Nenhuma marca registrada.
               </div>
             ) : (
-              <ul className="space-y-4">
+              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {counts.marcas.map((brand, i) => (
                   <li
                     key={brand.id || i}
-                    className="bg-white/95 rounded-[2rem] p-6 shadow-sm border border-gray-100"
+                    className="flex flex-col justify-between bg-white/95 rounded-2xl p-4 shadow-sm border border-gray-100"
                   >
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-1.5 mb-2">
                       {brand.year && (
-                        <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-0.5 text-xs font-bold">
+                        <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold">
                           {brand.year}
                         </span>
                       )}
                       <span
-                        className="rounded-full px-3 py-0.5 text-xs font-bold text-white"
+                        className="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
                         style={{ backgroundColor: CoresQualis.Marca }}
                       >
                         Marca
                       </span>
                     </div>
-                    <h4 className="font-bold text-gray-900">{brand.cleanTitle || brand.title}</h4>
+                    <h4
+                      className="text-sm font-bold text-gray-900 line-clamp-2"
+                      title={brand.cleanTitle || brand.title}
+                    >
+                      {brand.cleanTitle || brand.title}
+                    </h4>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Relatórios Técnicos */}
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <FileCheck className="h-5 w-5 text-indigo-600" />
+              Relatórios Técnicos ({counts.relatorios.length})
+            </h3>
+            {counts.relatorios.length === 0 ? (
+              <div className="bg-white/90 rounded-[2rem] p-8 text-center text-gray-500 border border-gray-100">
+                Nenhum relatório técnico registrado para este pesquisador.
+              </div>
+            ) : (
+              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {counts.relatorios.map((rep, i) => (
+                  <li
+                    key={rep.id || i}
+                    className="flex flex-col justify-between bg-white/95 rounded-2xl p-4 shadow-sm border border-gray-100"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-2">
+                        {rep.year && (
+                          <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold">
+                            {rep.year}
+                          </span>
+                        )}
+                        <span
+                          className="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
+                          style={{ backgroundColor: CoresQualis.Relatorio }}
+                        >
+                          Relatório Técnico
+                        </span>
+                      </div>
+                      <h4
+                        className="text-sm font-bold text-gray-900 line-clamp-2"
+                        title={rep.cleanTitle || rep.title}
+                      >
+                        {rep.cleanTitle || rep.title}
+                      </h4>
+                    </div>
                   </li>
                 ))}
               </ul>

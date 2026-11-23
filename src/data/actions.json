@@ -1,0 +1,58 @@
+[
+  {
+    "action_id": 1,
+    "code": "ACAO_01",
+    "title": "Biodiversidade em paisagens antrópicas",
+    "description": "Estamos monitorando diferentes componentes da biodiversidade (i.e., árvores, mamíferos, aves e insetos) em paisagens agrícolas e em uma área de restauração na Mata Atlântica do sul da Bahia, com o objetivo de compreender como as comunidades biológicas são estruturadas em diferentes usos do solo e avaliar a trajetória da biodiversidade ao longo do processo de restauração. Ademais, iremos quantificar a diversidade biológica que poderá ser utilizada em programas de estimativas de créditos de carbono e biodiversidade, e estabeleceremos um banco de marcador molecular de aves tipicamente registradas em remanescentes de Mata Atlântica para contribuir em projetos de eDNA.",
+    "created_at": "2026-11-19 21:36:43.474209"
+  },
+  {
+    "action_id": 2,
+    "code": "ACAO_02",
+    "title": "Ecofisiologia e Genética da Conservação de Árvores e Palmeiras Ameaçadas da Hileia Baiana",
+    "description": "Estamos avaliando respostas fisiológicas, funcionais e genéticas de árvores e palmeiras ameaçadas de extinção da Hileia Baiana, buscando compreender como as condições ambientais e a variabilidade entre matrizes e progênies influenciam seu desempenho e potencial de estabelecimento. Nossas ações integram avaliações em viveiro e campo, com monitoramento da sobrevivência, crescimento e desempenho funcional em áreas de restauração, além da caracterização da diversidade genética, visando gerar subsídios para a conservação dessas espécies, desde a seleção de matrizes e coleta de sementes até a produção de mudas e seu estabelecimento em campo.",
+    "created_at": "2026-11-19 21:36:43.474209"
+  },
+  {
+    "action_id": 3,
+    "code": "ACAO_03",
+    "title": "Estratégias biotecnológicas aplicadas à conservação e indução de tolerância a estresses ambientais em espécies de plantas de ecossistemas baianos",
+    "description": "Estamos desenvolvendo estudos sobre estratégias voltadas ao aumento da tolerância a estresses ambientais em plantas terrestres de ecossistemas baianos, com potencial de uso na restauração de ambientes degradados. Entre as estratégias investigadas, destacam-se o uso de primings físicos e químicos e a associação com fungos micorrízicos, que podem favorecer o estabelecimento e a sobrevivência das plantas em condições adversas, como seca, salinidade e altas temperaturas. Além disso, estão sendo conduzidos estudos voltados ao cultivo in vitro de espécies vegetais desses ecossistemas, visando à sua conservação, propagação e à produção de mudas para programas de reflorestamento e recuperação de áreas degradadas.",
+    "created_at": "2026-11-19 21:36:43.474209"
+  },
+  {
+    "action_id": 4,
+    "code": "ACAO_04",
+    "title": "Eficiência de diferentes métodos de restauração florestal na Mata Atlântica",
+    "description": "Estamos realizando um experimento com diferentes técnicas de restauração em uma área adjacente a Reserva Biológica de Una, a fim de verificar quais métodos de restauração são mais eficientes no retorno da diversidade florística local e identificar quais métodos de restauração são mais eficientes no sequestro de carbono acima do solo.",
+    "created_at": "2026-11-19 21:36:43.474209"
+  },
+  {
+    "action_id": 5,
+    "code": "ACAO_05",
+    "title": "Monitoramento da restauração no âmbito do Projeto Guardiões das águas das bacias de Joanes e Jacuípe, no território metropolitano de Salvador",
+    "description": "Estamos realizando o monitoramento das ações de restauração na região metropolitano de Salvador, incluindo a avaliação de indicadores de sucesso dessas ações, como a estrutura da área (projeção da copa das plantas até o solo, cobertura do solo com vegetação herbácea forrageira e estratificação das plantas quanto à altura), além da abundância, composição e riqueza de espécies regenerantes. Também monitoramos a qualidade da água nas nascentes dentro das áreas de intervenção. Nosso objetivo ao longo dos anos é avaliar continuamente os indicadores de biodiversidade e da água, bem como analisar os fatores ambientais e socioeconômicos que podem influenciar o sucesso das ações de restauração.",
+    "created_at": "2026-11-19 21:36:43.474209"
+  },
+  {
+    "action_id": 6,
+    "code": "ACAO_06",
+    "title": "Águas da Caatinga – Regeneração Natural Assistida por agricultores tradicionais",
+    "description": "Estamos investigando processos de regeneração natural assistida promovidos por agricultores familiares na Caatinga, com foco na bacia do Rio São Francisco e na sub-bacia do Jacaré-Verde, na Bahia. A pesquisa combina análise geoespacial da paisagem, levantamento florístico e fitossociológico e avaliação de atributos estruturais e funcionais da vegetação em áreas associadas a barreiros e em ecossistemas de referência. Buscamos compreender como o manejo da terra, o manejo hídrico e as práticas agroecológicas influenciam a regeneração da vegetação nativa e a diversidade vegetal. Os resultados irão subsidiar o desenvolvimento da Tecnologia Social de Regeneração Natural Assistida associada a Barraginhas – RNA+B e sua aplicação em estratégias e políticas de restauração da Caatinga.",
+    "created_at": "2026-11-19 21:36:43.474209"
+  },
+  {
+    "action_id": 7,
+    "code": "ACAO_07",
+    "title": "Microbiodiversidade aquática como ferramenta para conservação de bacias hidrográficas",
+    "description": "Estamos analisando os componentes da biodiversidade planctônica e suas relações com os usos da terra e produção de serviços ecossistêmicos em áreas da Mata Atlântica.",
+    "created_at": "2026-11-19 21:36:43.474209"
+  },
+  {
+    "action_id": 8,
+    "code": "ACAO_08",
+    "title": "Efeito do fogo na estrutura da comunidade de anuros no Cerrado Baiano",
+    "description": "Estamos investigando os efeitos das queimadas sobre a estrutura da comunidade de anuros no Cerrado. Para isso, utilizamos busca ativa e gravadores autônomos instalados em áreas com histórico de fogo e em áreas controle, permitindo o monitoramento das vocalizações dos anuros. A partir dos registros das espécies, serão avaliadas a riqueza, a composição e a frequência de ocorrência das espécies, além de aspectos da diversidade taxonômica, funcional e filogenética da comunidade. Os resultados contribuirão para compreender como as queimadas podem alterar as comunidades de anuros e os ambientes acústicos do Cerrado baiano.",
+    "created_at": "2026-11-19 21:36:43.474209"
+  }
+]

@@ -1,27 +1,20 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ExternalLink, FileText, Search } from 'lucide-react'
+import { ExternalLink, Search } from 'lucide-react'
 import ResearcherAvatar from '@/components/ResearcherAvatar'
-import {
-  getLattesUrl,
-  institutions,
-  normalizeText,
-  researchers as localResearchers,
-} from '@/data/researchers'
+import { getLattesUrl, normalizeText } from '@/data/researchers'
 import { useResearchers } from '@/hooks/useResearchers'
 
 export default function Researcher() {
   const [query, setQuery] = useState('')
   const [institutionId, setInstitutionId] = useState('')
-  const { researchers: apiResearchers } = useResearchers()
-
-  const list = apiResearchers.length > 0 ? apiResearchers : localResearchers
+  const { researchers: list, institutions, loading, error } = useResearchers()
 
   const filtered = useMemo(() => {
     const q = normalizeText(query.trim())
     return list.filter((r) => {
       const matchesName = !q || normalizeText(r.name).includes(q)
-      const rInstId = String(r.institution_id ?? r.institution?.institution_id ?? '').toLowerCase()
+      const rInstId = String(r.institution_id ?? r.institution?.institution_id ?? r.institution?.id ?? '').toLowerCase()
       const matchesInstitution = !institutionId || rInstId === institutionId.toLowerCase()
       return matchesName && matchesInstitution
     })
@@ -40,7 +33,7 @@ export default function Researcher() {
           da rede
         </h1>
         <p className="mt-3 text-sm text-gray-600">
-          {list.length} pesquisadores de {institutions.length} instituições.
+          {loading ? 'Carregando pesquisadores...' : `${list.length} pesquisadores cadastrados.`}
         </p>
       </header>
 
@@ -57,28 +50,45 @@ export default function Researcher() {
           />
         </label>
 
-        <label className="sm:w-72">
-          <span className="sr-only">Filtrar por instituição</span>
-          <select
-            value={institutionId}
-            onChange={(e) => setInstitutionId(e.target.value)}
-            className="w-full rounded-full border border-gray-200 bg-white/90 py-3 px-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="">Todas as instituições</option>
-            {institutions.map((inst) => (
-              <option key={inst.institution_id} value={inst.institution_id}>
-                {inst.acronym} - {inst.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        {institutions && institutions.length > 0 && (
+          <label className="sm:w-72">
+            <span className="sr-only">Filtrar por instituição</span>
+            <select
+              value={institutionId}
+              onChange={(e) => setInstitutionId(e.target.value)}
+              className="w-full rounded-full border border-gray-200 bg-white/90 py-3 px-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <option value="">Todas as instituições</option>
+              {institutions.map((inst) => (
+                <option key={inst.institution_id || inst.id} value={inst.institution_id || inst.id}>
+                  {inst.acronym ? `${inst.acronym} - ` : ''}{inst.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
 
       <p className="mb-6 text-sm text-gray-500">
-        {filtered.length} {filtered.length === 1 ? 'resultado' : 'resultados'}
+        {loading
+          ? 'Buscando na base de dados...'
+          : `${filtered.length} ${filtered.length === 1 ? 'resultado' : 'resultados'}`}
       </p>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" aria-busy="true">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-64 rounded-[2rem] bg-white/70 shadow-sm border border-gray-100 animate-pulse p-6"
+            />
+          ))}
+        </div>
+      ) : error ? (
+        <p className="text-center text-gray-500 py-16">
+          Não foi possível carregar os pesquisadores. Verifique a conexão com a API.
+        </p>
+      ) : filtered.length === 0 ? (
         <p className="text-center text-gray-500 py-16">Nenhum pesquisador encontrado.</p>
       ) : (
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -87,7 +97,7 @@ export default function Researcher() {
             return (
               <li
                 key={r.lattes_id || r.id}
-                className="flex flex-col items-center justify-between text-center bg-white/90 rounded-[2rem] p-6 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                className="flex flex-col items-center justify-between text-center bg-white/90 border-2 border-gray-100 rounded-[2rem] p-6 shadow-md hover:shadow-lg hover:-translate-y-2 transition-all duration-300"
               >
                 <Link
                   to={`/pesquisadores/${profileId}`}
@@ -102,7 +112,7 @@ export default function Researcher() {
                   </h2>
                   {r.institution && (
                     <p className="mt-1 text-sm text-gray-500" title={r.institution.name}>
-                      {r.institution.acronym}
+                      {r.institution.acronym || r.institution.name}
                     </p>
                   )}
                   {r.graduation && (
@@ -113,13 +123,6 @@ export default function Researcher() {
                 </Link>
 
                 <div className="mt-5 pt-4 border-t border-gray-100 w-full flex flex-col gap-2">
-                  <Link
-                    to={`/pesquisadores/${profileId}`}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-semibold shadow-sm transition-colors"
-                  >
-                    <FileText className="h-3.5 w-3.5" />
-                    Ver painel do pesquisador
-                  </Link>
                   <a
                     href={getLattesUrl(r)}
                     target="_blank"

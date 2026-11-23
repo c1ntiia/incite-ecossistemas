@@ -1,28 +1,11 @@
-import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import ResearcherCarousel from '@/components/ResearcherCarousel'
-import { researchers } from '@/data/researchers'
 import { useResearchers } from '@/hooks/useResearchers'
 import AboutSection from '../components/AboutSection'
 import InstitutionsSection from '../components/InstitutionsSection'
-import { Info, AlertTriangle, Users, Building2 } from 'lucide-react'
-
-// Embaralha uma cópia para o carrossel não começar sempre pelos mesmos nomes
-function shuffle(list) {
-  const copy = [...list]
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[copy[i], copy[j]] = [copy[j], copy[i]]
-  }
-  return copy
-}
 
 export default function Home() {
-  // Estado necessário para controlar as abas interativas
-  const [activeTab, setActiveTab] = useState('incite')
-
-  const carouselResearchers = useMemo(() => shuffle(researchers), [])
   const { researchers: apiResearchers, loading, error } = useResearchers()
 
   return (

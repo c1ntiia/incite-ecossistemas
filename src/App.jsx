@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import Researcher from './pages/researcher'
 import ResearcherPanel from './pages/ResearcherPanel'
 import Productions from './pages/Productions'
+import Actions from './pages/Actions'
 import Layout from './templates/layout'
 import './App.css'
 
@@ -11,9 +12,10 @@ export default function App() {
   return (
     <Router basename={import.meta.env.BASE_URL}>
       <Routes>
-        <Route path="/" element={<InitialHome />} />
+        {/* <Route path="/" element={<InitialHome />} /> */}
         <Route element={<Layout />}>
           <Route path="/home" element={<Home />} />
+          <Route path="/acoes" element={<Actions />} />
           <Route path="/pesquisadores" element={<Researcher />} />
           <Route path="/pesquisadores/:id" element={<ResearcherPanel />} />
           <Route path="/producoes" element={<Productions />} />

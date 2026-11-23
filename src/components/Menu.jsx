@@ -12,10 +12,10 @@ import {
 
 // Array de rotas
 const NAV_ITEMS = [
-  { name: "Início", path: "/", icon: Home },
+  { name: "Início", path: "/home", icon: Home },
   { name: "Ações", path: "/acoes", icon: BookOpen },
   { name: "Pesquisadores", path: "/pesquisadores", icon: Users },
-  { name: "Mapa", path: "/mapa", icon: MapIcon },
+  // { name: "Mapa", path: "/mapa", icon: MapIcon },
   { name: "Produções", path: "/producoes", icon: FileText },
 ];
 
